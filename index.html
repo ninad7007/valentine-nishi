@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Will you be my Valentine?</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+
+        .card {
+            background: white;
+            border-radius: 24px;
+            padding: 48px 64px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            position: relative;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .cat-emoji {
+            font-size: 80px;
+            margin-bottom: 24px;
+            display: block;
+        }
+
+        .question {
+            font-size: 28px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 32px;
+        }
+
+        .buttons-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            min-height: 120px;
+            position: relative;
+        }
+
+        .yes-btn {
+            background: linear-gradient(135deg, #ec407a 0%, #e91e63 100%);
+            color: white;
+            border: none;
+            padding: 18px 48px;
+            font-size: 24px;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(233, 30, 99, 0.4);
+        }
+
+        .yes-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(233, 30, 99, 0.5);
+        }
+
+        .no-btn {
+            background: #f5f5f5;
+            color: #666;
+            border: 1px solid #ddd;
+            padding: 8px 16px;
+            font-size: 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            position: absolute;
+            right: 60px;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .shy-message {
+            margin-top: 24px;
+            color: #888;
+            font-size: 14px;
+        }
+
+        .success-message {
+            display: none;
+            font-size: 24px;
+            color: #e91e63;
+            margin-top: 20px;
+        }
+
+        .video-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .video-container.active {
+            display: flex;
+        }
+
+        .video-container video {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 16px;
+            box-shadow: 0 0 50px rgba(233, 30, 99, 0.5);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 36px;
+            font-weight: 300;
+            cursor: pointer;
+            padding: 5px;
+            line-height: 1;
+            transition: color 0.2s ease;
+        }
+
+        .close-btn:hover {
+            color: white;
+        }
+
+        .hearts {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+
+        .heart {
+            position: absolute;
+            font-size: 24px;
+            animation: float-up 4s ease-out forwards;
+            opacity: 0;
+        }
+
+        @keyframes float-up {
+            0% {
+                opacity: 1;
+                transform: translateY(0) rotate(0deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100vh) rotate(720deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <span class="cat-emoji">💕</span>
+        <h1 class="question">Nishi, will you be my valentine? Plis?</h1>
+
+        <div class="buttons-container">
+            <button class="yes-btn" onclick="sayYes()">Yes</button>
+            <button class="no-btn" id="noBtn">No</button>
+        </div>
+
+        <p class="shy-message">"No" seems a bit shy 😈</p>
+        <p class="success-message" id="successMsg">Good Descision ;) ❤️</p>
+    </div>
+
+    <div class="hearts" id="hearts"></div>
+
+    <div class="video-container" id="videoContainer">
+        <button class="close-btn" onclick="closeVideo()">&times;</button>
+        <video id="celebrationVideo" loop playsinline>
+            <source src="celebration.mp4" type="video/mp4">
+        </video>
+    </div>
+
+    <script>
+        const noBtn = document.getElementById('noBtn');
+        const card = document.querySelector('.card');
+
+        function getRandomPosition() {
+            const cardRect = card.getBoundingClientRect();
+            const btnRect = noBtn.getBoundingClientRect();
+
+            // Calculate available space within the card
+            const maxX = cardRect.width - btnRect.width - 40;
+            const maxY = cardRect.height - btnRect.height - 40;
+
+            const randomX = Math.random() * maxX - maxX / 2;
+            const randomY = Math.random() * maxY - maxY / 2;
+
+            return { x: randomX, y: randomY };
+        }
+
+        function moveButton() {
+            const pos = getRandomPosition();
+            noBtn.style.transform = `translate(${pos.x}px, ${pos.y}px)`;
+        }
+
+        // Move on hover
+        noBtn.addEventListener('mouseenter', moveButton);
+
+        // Move on touch (for mobile)
+        noBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            moveButton();
+        });
+
+        // Also move when mouse gets close
+        document.addEventListener('mousemove', (e) => {
+            const btnRect = noBtn.getBoundingClientRect();
+            const btnCenterX = btnRect.left + btnRect.width / 2;
+            const btnCenterY = btnRect.top + btnRect.height / 2;
+
+            const distance = Math.sqrt(
+                Math.pow(e.clientX - btnCenterX, 2) +
+                Math.pow(e.clientY - btnCenterY, 2)
+            );
+
+            // If mouse is within 50px of button, move it
+            if (distance < 50) {
+                moveButton();
+            }
+        });
+
+        function sayYes() {
+            document.querySelector('.shy-message').style.display = 'none';
+            document.getElementById('successMsg').style.display = 'block';
+            noBtn.style.display = 'none';
+
+            // Create floating hearts
+            createHearts();
+
+            // Show and play video after a short delay
+            setTimeout(() => {
+                const videoContainer = document.getElementById('videoContainer');
+                const video = document.getElementById('celebrationVideo');
+                videoContainer.classList.add('active');
+                video.play();
+            }, 1500);
+        }
+
+        function closeVideo() {
+            const videoContainer = document.getElementById('videoContainer');
+            const video = document.getElementById('celebrationVideo');
+            video.pause();
+            videoContainer.classList.remove('active');
+        }
+
+        function createHearts() {
+            const heartsContainer = document.getElementById('hearts');
+            const heartEmojis = ['💖', '💕', '💗', '💓', '💘', '❤️'];
+
+            for (let i = 0; i < 30; i++) {
+                setTimeout(() => {
+                    const heart = document.createElement('div');
+                    heart.className = 'heart';
+                    heart.textContent = heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
+                    heart.style.left = Math.random() * 100 + 'vw';
+                    heart.style.bottom = '-50px';
+                    heart.style.fontSize = (Math.random() * 20 + 20) + 'px';
+                    heartsContainer.appendChild(heart);
+
+                    // Remove heart after animation
+                    setTimeout(() => heart.remove(), 4000);
+                }, i * 100);
+            }
+        }
+    </script>
+</body>
+</html>
